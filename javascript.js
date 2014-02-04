@@ -12,17 +12,43 @@ if (!String.format) {
   };
 }
 
-var buildingsURL = "http://api.unibuddy.com.au/api/v2/uni/flinders/buildings.json"
-var roomsURL = "http://api.unibuddy.com.au/api/v2/uni/flinders/buildings/{0}/rooms.json"
+var universityURL = "http://api.unibuddy.com.au/api/v2/uni.json";
+var buildingsURL = "http://api.unibuddy.com.au/api/v2/uni/{0}/buildings.json"
+var roomsURL = "http://api.unibuddy.com.au/api/v2/uni/{0}/buildings/{1}/rooms.json"
+var universityCodes = {};
+var currentUniversity = "";
 var buildingCodes = {};
 var roomList;
+
+function loadUniversity() {
+  currentUniversity = this.value;
+  $('#room').empty()[0].disabled = true;
+
+  var building = $('#building')[0];
+  $(building).empty();
+  $.get(String.format(buildingsURL, universityCodes[currentUniversity]), function(data) {
+    
+    var option = document.createElement("option");
+    option.text="";
+    building.add(option); 
+    data.data.forEach(function(entry){
+      option = document.createElement("option");
+      option.text=entry.name;
+      building.add(option);
+      buildingCodes[entry.name] = entry.code;
+    });
+    building.disabled = false;
+  }).fail(function() {
+    building.disabled = true;
+  });
+}
 
 function loadBuilding() {
 	var buildingName = this.value;
 	var room = document.getElementById("room");
 	$(room).empty();
 
-	$.get(String.format(roomsURL, buildingCodes[buildingName]), function(data) {
+	$.get(String.format(roomsURL, universityCodes[currentUniversity], buildingCodes[buildingName]), function(data) {
 		roomList = data;
 		var option = document.createElement("option");
 		option.text="";
@@ -63,22 +89,24 @@ function getGPS() {
 
 $(function() {
 	//simulate ajax to server
-	$.get(buildingsURL, function(data) {
-		var building = $('#building')[0];
-		var option = document.createElement("option");
-		option.text="";
-		building.add(option);	
-		data.data.forEach(function(entry){
-			option = document.createElement("option");
-			option.text=entry.name;
-			building.add(option);
-			buildingCodes[entry.name] = entry.code;
-		});
-	}).fail(function() {
-		alert("an error occured getting rooms list");
-	});
+	$.get(universityURL, function(data) {
+    var university = $('#university')[0];    
+    var option = document.createElement("option");
+    option.text="";
+    university.add(option); 
+    data.data.forEach(function(entry){
+      option = document.createElement("option");
+      option.text=entry.name;
+      university.add(option);
+      universityCodes[entry.name] = entry.code;
+    });
+    university.disabled = false;
+  }).fail(function() {
+    alert("Error loading university list from " + universityURL);
+  })
 
 	//add event listeners
+  $('#university').on('change', loadUniversity);
 	$('#building').on('change', loadBuilding);
 	$('#room').on('change', loadRoom);
 	$('#getGPS').on('click', getGPS);
