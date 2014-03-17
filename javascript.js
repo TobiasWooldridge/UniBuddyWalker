@@ -13,12 +13,16 @@ if (!String.format) {
 }
 
 var universityURL = "http://api.unibuddy.com.au/api/v2/uni.json";
-var buildingsURL = "http://api.unibuddy.com.au/api/v2/uni/{0}/buildings.json"
-var roomsURL = "http://api.unibuddy.com.au/api/v2/uni/{0}/buildings/{1}/rooms.json"
+var buildingsURL = "http://api.unibuddy.com.au/api/v2/uni/{0}/buildings.json";
+var roomsURL = "http://api.unibuddy.com.au/api/v2/uni/{0}/buildings/{1}/rooms.json";
+var roomsSuggestionUrl = "http://api.unibuddy.com.au/api/v2/uni/{0}/buildings/{1}/rooms/{2}/suggest.json";
 var universityCodes = {};
 var currentUniversity = "";
 var buildingCodes = {};
+var buildingName;
 var roomList;
+var roomCodeToId = {};
+var roomCode;
 
 function loadUniversity() {
   currentUniversity = this.value;
@@ -44,7 +48,7 @@ function loadUniversity() {
 }
 
 function loadBuilding() {
-	var buildingName = this.value;
+	buildingName = this.value;
 	var room = document.getElementById("room");
 	$(room).empty();
 
@@ -56,6 +60,7 @@ function loadBuilding() {
 		data.data.forEach(function(entry){
 			option = document.createElement("option");
 			option.text = entry.full_code + " (" + entry.name + ")";
+			roomCodeToId[option.text] = entry.code;
 			room.add(option);
 		});
 		room.disabled = false;
@@ -63,7 +68,7 @@ function loadBuilding() {
 }
 
 function loadRoom() {
-	var roomCode = this.value;
+	roomCode = this.value;
 	if (roomCode != "") {
 		document.getElementById("submit_button").disabled = false;
 	} else {
@@ -72,7 +77,11 @@ function loadRoom() {
 }
 
 function post() {
-	alert("to post entered data to api.unibuddy.com.au");
+    var data = {
+        latitude: document.getElementById('latitude').value,
+        longitude: document.getElementById('longitude').value
+    }
+    $.post(String.format(roomsSuggestionUrl, universityCodes[currentUniversity], buildingCodes[buildingName], roomCodeToId[roomCode]), data);
 }
 
 var x;
@@ -117,7 +126,9 @@ $(function() {
 function showPosition(position)
   {
   lat=position.coords.latitude;
-  lon=position.coords.longitude;
+  lon = position.coords.longitude;
+  document.getElementById('latitude').value = lat;
+  document.getElementById('longitude').value = lon;
   latlon=new google.maps.LatLng(lat, lon)
   mapholder=document.getElementById('mapholder')
   mapholder.style.height='250px';
