@@ -1,29 +1,30 @@
 <!doctype>
 <html>
 <head>
-<title>form Mokup</title>
-<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
-<script src="https://maps.googleapis.com/maps/api/js?v=3&sensor=true"></script>
-<script src="javascript.js"></script>
-<link href="css.css" rel="stylesheet">
+    <title>form Mokup</title>
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3&sensor=true"></script>
+    <script src="javascript.js"></script>
+    <link href="css.css" rel="stylesheet">
 </head>
 <body>
-    <div id="errorPanel" style="display: none;">
-    </div>
+<div id="errorPanel" style="display: none;">
+</div>
 
-	<div id="selector">
-		<label for="university">University:</label><select id="university" disabled></select>
-		<label for="building">Building:</label><select id="buildings" disabled></select>
-		<label for="rooms">Room:</label><select id="rooms" disabled></select>
-	</div>
+<div id="selector">
+    <label for="university">University:</label><select id="university" disabled></select>
+    <label for="building">Building:</label><select id="buildings" disabled></select>
+    <label for="rooms">Room:</label><select id="rooms" disabled></select>
+</div>
 
-	<div id="detail form">
-		<input id="getGPS" type="button" value="Get GPS coordinates"><span id="GPS_coords"></span>
-		<div id="map"></div>
-		<span>Other details better formated</span>
-        <input type="hidden" id="latitude" />
-        <input type="hidden" id="longitude" />
-		<input id="submit_button" type="button" disabled value="Submit">
-	</div>
+<div id="detail form">
+    <input id="getGPS" type="button" value="Get GPS coordinates"><span id="GPS_coords"></span>
+
+    <div id="map"></div>
+    <span>Other details better formated</span>
+    <input type="hidden" id="latitude"/>
+    <input type="hidden" id="longitude"/>
+    <input id="submit_button" type="button" disabled value="Submit">
+</div>
 </body>
 </html>

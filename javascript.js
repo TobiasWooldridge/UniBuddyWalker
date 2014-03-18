@@ -33,9 +33,9 @@ function loadUniversities() {
 
     universities.attr('disabled', true);
 
-    $.get(universityURL, function (response) {
+    $.get(universityURL,function (response) {
         // Sort universities by name.
-        response.data.sort(function(a, b) {
+        response.data.sort(function (a, b) {
             return a.name < b.name ? 1 : -1;
         })
 
@@ -63,7 +63,7 @@ function loadBuildings() {
 
     $.get(String.format(buildingsURL, currentUniversity()),function (response) {
         // Sort buildings by name.
-        response.data = response.data.sort(function(a, b) {
+        response.data = response.data.sort(function (a, b) {
             return a.name > b.name ? 1 : -1;
         })
 
@@ -90,7 +90,7 @@ function loadRooms() {
 
     $.get(String.format(roomsURL, currentUniversity(), $("#buildings").val()),function (response) {
         // Sort buildings by name.
-        response.data = response.data.sort(function(a, b) {
+        response.data = response.data.sort(function (a, b) {
             return a.code > b.code ? 1 : -1;
         })
 
