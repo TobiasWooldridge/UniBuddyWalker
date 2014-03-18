@@ -1,164 +1,187 @@
 if (!String.format) {
-  String.format = function (format) {
+    String.format = function (format) {
 
-    var args = Array.prototype.slice.call(arguments, 1);
-    var sprintfRegex = /\{(\d+)\}/g;
+        var args = Array.prototype.slice.call(arguments, 1);
+        var sprintfRegex = /\{(\d+)\}/g;
 
-    var sprintf = function (match, number) {
-      return number in args ? args[number] : match;
+        var sprintf = function (match, number) {
+            return number in args ? args[number] : match;
+        };
+
+        return format.replace(sprintfRegex, sprintf);
     };
-
-    return format.replace(sprintfRegex, sprintf);
-  };
 }
 
-var universityURL = "http://api.unibuddy.com.au/api/v2/uni.json";
-var buildingsURL = "http://api.unibuddy.com.au/api/v2/uni/{0}/buildings.json";
-var roomsURL = "http://api.unibuddy.com.au/api/v2/uni/{0}/buildings/{1}/rooms.json";
-var roomsSuggestionUrl = "http://api.unibuddy.com.au/api/v2/uni/{0}/buildings/{1}/rooms/{2}/suggest.json";
-var universityCodes = {};
-var currentUniversity = "";
-var buildingCodes = {};
+var apiBase = "http://api.unibuddy.com.au/api/v2/";
+//var apiBase = "http://127.0.0.1:3000/api/v2/";
+var universityURL = apiBase + "uni.json";
+var buildingsURL = apiBase + "uni/{0}/buildings.json";
+var roomsURL = apiBase + "uni/{0}/buildings/{1}/rooms.json";
+var roomsSuggestionUrl = apiBase + "uni/{0}/buildings/{1}/rooms/{2}/suggest.json";
 var buildingName;
 var roomList;
-var roomCodeToId = {};
 var roomCode;
 
-function loadUniversity() {
-  currentUniversity = this.value;
-  $('#room').empty()[0].disabled = true;
+function currentUniversity() {
+    return $("#university").val();
+}
 
-  var building = $('#building')[0];
-  $(building).empty();
-  $.get(String.format(buildingsURL, universityCodes[currentUniversity]), function(data) {
-    
-    var option = document.createElement("option");
-    option.text="";
-    building.add(option); 
-    data.data.forEach(function(entry){
-      option = document.createElement("option");
-      option.text=entry.name;
-      building.add(option);
-      buildingCodes[entry.name] = entry.code;
+
+function loadUniversities() {
+    var universities = $('#university');
+
+
+    universities.attr('disabled', true);
+
+    $.get(universityURL, function (response) {
+        // Sort universities by name.
+        response.data.sort(function(a, b) {
+            return a.name < b.name ? 1 : -1;
+        })
+
+        response.data.forEach(function (university) {
+            universities.append($('<option />', {
+                text: university.name,
+                value: university.code
+            }));
+        });
+
+        if (response.data.length) {
+            universities.attr('disabled', false);
+        }
+
+        universities.change();
+    }).fail(function () {
+        alert("Error loading university list from " + universityURL);
+    })
+}
+
+function loadBuildings() {
+    var buildings = $('#buildings');
+    buildings.empty();
+    buildings.attr('disabled', true);
+
+    $.get(String.format(buildingsURL, currentUniversity()),function (response) {
+        // Sort buildings by name.
+        response.data = response.data.sort(function(a, b) {
+            return a.name > b.name ? 1 : -1;
+        })
+
+        response.data.forEach(function (building) {
+            buildings.append($('<option />', {
+                text: building.name,
+                value: building.code
+            }));
+        });
+
+        if (response.data.length) {
+            buildings.attr('disabled', false);
+        }
+
+        buildings.change();
+    }).fail(function () {
     });
-    building.disabled = false;
-  }).fail(function() {
-    building.disabled = true;
-  });
 }
 
-function loadBuilding() {
-	buildingName = this.value;
-	var room = document.getElementById("room");
-	$(room).empty();
+function loadRooms() {
+    var rooms = $("#rooms");
+    rooms.empty();
+    rooms.attr('disabled', true);
 
-	$.get(String.format(roomsURL, universityCodes[currentUniversity], buildingCodes[buildingName]), function(data) {
-		roomList = data;
-		var option = document.createElement("option");
-		option.text="";
-		room.add(option);
-		data.data.forEach(function(entry){
-			option = document.createElement("option");
-			option.text = entry.full_code + " (" + entry.name + ")";
-			roomCodeToId[option.text] = entry.code;
-			room.add(option);
-		});
-		room.disabled = false;
-	}).fail(function() {room.disabled = true;});	
+    $.get(String.format(roomsURL, currentUniversity(), $("#buildings").val()),function (response) {
+        // Sort buildings by name.
+        response.data = response.data.sort(function(a, b) {
+            return a.code > b.code ? 1 : -1;
+        })
+
+        response.data.forEach(function (room) {
+            rooms.append($('<option />', {
+                text: room.full_code + " (" + room.name + ")",
+                value: room.code
+            }));
+        });
+
+        rooms.change();
+        rooms.attr('disabled', false);
+    }).fail(function () {
+    });
 }
 
-function loadRoom() {
-	roomCode = this.value;
-	if (roomCode != "") {
-		document.getElementById("submit_button").disabled = false;
-	} else {
-		document.getElementById("submit_button").disabled = true;
-	}
+function selectRoom() {
+    $("#submit_button").attr('disabled', $("#rooms").val() == "");
 }
 
-function post() {
+function sendRoomDetailsSuggestion() {
     var data = {
-        latitude: document.getElementById('latitude').value,
-        longitude: document.getElementById('longitude').value
+        latitude: $('#latitude').val(),
+        longitude: $('#longitude').val()
     }
-    $.post(String.format(roomsSuggestionUrl, universityCodes[currentUniversity], buildingCodes[buildingName], roomCodeToId[roomCode]), data);
+
+    $.post(String.format(roomsSuggestionUrl, currentUniversity(), $("#buildings").val(), $("#rooms").val()), data);
 }
 
-var x;
+function displayError(message) {
+    $("#errorPanel").text(message);
+    $("#errorPanel").slideDown();
+}
+
 function getGPS() {
-
-	if (navigator.geolocation)
-    {
-    	navigator.geolocation.getCurrentPosition(showPosition,showError);
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition, showError);
     }
-  	else {
-  		x.innerHTML="Geolocation is not supported by this browser.";
-  	}
+    else {
+        displayError("Geolocation is not supported by this browser.");
+    }
 }
 
-$(function() {
-	//simulate ajax to server
-	$.get(universityURL, function(data) {
-    var university = $('#university')[0];    
-    var option = document.createElement("option");
-    option.text="";
-    university.add(option); 
-    data.data.forEach(function(entry){
-      option = document.createElement("option");
-      option.text=entry.name;
-      university.add(option);
-      universityCodes[entry.name] = entry.code;
-    });
-    university.disabled = false;
-  }).fail(function() {
-    alert("Error loading university list from " + universityURL);
-  })
+$(function () {
+    loadUniversities();
 
-	//add event listeners
-  $('#university').on('change', loadUniversity);
-	$('#building').on('change', loadBuilding);
-	$('#room').on('change', loadRoom);
-	$('#getGPS').on('click', getGPS);
-	$('#submit_button').on('click', post);
-	x = $('#GPS_coords')[0];
+    //add event listeners
+    $('#university').change(loadBuildings);
+    $('#buildings').change(loadRooms);
+    $('#rooms').change(selectRoom);
+    $('#getGPS').click(getGPS);
+    $('#submit_button').click(sendRoomDetailsSuggestion);
 });
 
-function showPosition(position)
-  {
-  lat=position.coords.latitude;
-  lon = position.coords.longitude;
-  document.getElementById('latitude').value = lat;
-  document.getElementById('longitude').value = lon;
-  latlon=new google.maps.LatLng(lat, lon)
-  mapholder=document.getElementById('mapholder')
-  mapholder.style.height='250px';
-  mapholder.style.width='100%';
+function showPosition(position) {
+    var latitude = position.coords.latitude;
+    var longitude = position.coords.longitude;
+    $('#latitude').val(latitude);
+    $('#longitude').val(longitude);
 
-  var myOptions={
-  center:latlon,zoom:14,
-  mapTypeId:google.maps.MapTypeId.ROADMAP,
-  mapTypeControl:false,
-  navigationControlOptions:{style:google.maps.NavigationControlStyle.SMALL}
-  };
-  var map=new google.maps.Map(document.getElementById("mapholder"),myOptions);
-  var marker=new google.maps.Marker({position:latlon,map:map,title:"You are here!"});
-  }
+    var userLocation = new google.maps.LatLng(latitude, longitude);
 
-function showError(error)
-  {
-  switch(error.code) 
-    {
-    case error.PERMISSION_DENIED:
-      x.innerHTML="User denied the request for Geolocation."
-      break;
-    case error.POSITION_UNAVAILABLE:
-      x.innerHTML="Location information is unavailable."
-      break;
-    case error.TIMEOUT:
-      x.innerHTML="The request to get user location timed out."
-      break;
-    case error.UNKNOWN_ERROR:
-      x.innerHTML="An unknown error occurred."
-      break;
+    var mapPanel = $('#map');
+    mapPanel.css('height', '250px');
+    mapPanel.css('width', '100%');
+
+    var myOptions = {
+        center: userLocation, zoom: 14,
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        mapTypeControl: false,
+        navigationControlOptions: {style: google.maps.NavigationControlStyle.SMALL}
+    };
+
+    var map = new google.maps.Map(document.getElementById("map"), myOptions);
+    var marker = new google.maps.Marker({position: userLocation, map: map, title: "You are here!"});
+}
+
+
+function showError(error) {
+    switch (error.code) {
+        case error.PERMISSION_DENIED:
+            displayError("User denied the request for Geolocation.")
+            break;
+        case error.POSITION_UNAVAILABLE:
+            displayError("Location information is unavailable.");
+            break;
+        case error.TIMEOUT:
+            displayError("The request to get user location timed out.");
+            break;
+        case error.UNKNOWN_ERROR:
+            displayError("An unknown error occurred.");
+            break;
     }
-  }
+}
