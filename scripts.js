@@ -138,6 +138,7 @@ $(function () {
     updateGps();
     setInterval(updateGps, 2000);
     $("#enableGps").change(updateGps);
+    $("#updateGps").click(updateGps);
 });
 
 function updateGps() {
@@ -150,6 +151,8 @@ function updateGps() {
             displayError("Geolocation is not supported by this browser.");
         }
     }
+
+    return false;
 }
 
 function showPosition(position) {

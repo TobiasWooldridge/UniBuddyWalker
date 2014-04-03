@@ -12,13 +12,14 @@
 </div>
 
 <div id="selector">
-    <label for="university">University:</label><select id="university" disabled></select>
-    <label for="buildings">Building:</label><select id="buildings" disabled></select>
-    <label for="rooms">Room:</label><select id="rooms" disabled></select>
+    <label for="university">University:</label><select id="university" disabled></select><br />
+    <label for="buildings">Building:</label><select id="buildings" disabled></select><br />
+    <label for="rooms">Room:</label><select id="rooms" disabled></select><br />
 </div>
 
 <form action="">
-    <label><input id="enableGps" type="checkbox"> Enable GPS</label>
+    <label><input id="enableGps" type="checkbox" checked="checked" /> Auto-update GPS</label>
+    <label><input id="updateGps" type="button" value="Force update GPS" /></label>
 
     <span id="gpsCoords"></span>
 
