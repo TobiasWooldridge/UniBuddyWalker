@@ -18,18 +18,15 @@ var universityURL = apiBase + "uni.json";
 var buildingsURL = apiBase + "uni/{0}/buildings.json";
 var roomsURL = apiBase + "uni/{0}/buildings/{1}/rooms.json";
 var roomsSuggestionUrl = apiBase + "uni/{0}/buildings/{1}/rooms/{2}/suggest.json";
-var buildingName;
-var roomList;
-var roomCode;
+var map;
+var marker;
 
 function currentUniversity() {
     return $("#university").val();
 }
 
-
 function loadUniversities() {
     var universities = $('#university');
-
 
     universities.attr('disabled', true);
 
@@ -125,8 +122,8 @@ function displayError(message) {
     $("#errorPanel").slideDown();
 }
 
-
 $(function () {
+    initializeMap(new google.maps.LatLng(-35.0285553, 138.5724123));
     loadUniversities();
 
     // Register event listeners
@@ -135,49 +132,79 @@ $(function () {
     $('#rooms').change(selectRoom);
     $('#submit_button').click(sendRoomDetailsSuggestion);
 
-    updateGps();
-    setInterval(updateGps, 2000);
-    $("#enableGps").change(updateGps);
+    setInterval(function() {
+        if ($("#enableGps").is(":checked")) {
+            updateGps();
+        }
+    }, 1000);
+
+    $("#enableGps").change(function() {
+        updateGps();
+        marker.setDraggable(!$("#enableGps").is(":checked"));
+    });
+
     $("#updateGps").click(updateGps);
 });
 
 function updateGps() {
-    if ($("#enableGps").is(":checked")) {
-        console.log("Updating GPS coordinates.");
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(showPosition, showError);
-        }
-        else {
-            displayError("Geolocation is not supported by this browser.");
-        }
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function showPosition(position) {
+            setMarkerPosition(position.coords.latitude, position.coords.longitude);
+        }, showError);
+    }
+    else {
+        displayError("Geolocation is not supported by this browser.");
     }
 
     return false;
 }
 
-function showPosition(position) {
-    var latitude = position.coords.latitude;
-    var longitude = position.coords.longitude;
-    $('#latitude').val(latitude);
-    $('#longitude').val(longitude);
-
-    var userLocation = new google.maps.LatLng(latitude, longitude);
-
+function initializeMap(location) {
     var mapPanel = $('#map');
     mapPanel.css('height', '250px');
     mapPanel.css('width', '100%');
 
     var myOptions = {
-        center: userLocation, zoom: 14,
+        center: location,
+        zoom: 17,
         mapTypeId: google.maps.MapTypeId.ROADMAP,
         mapTypeControl: false,
-        navigationControlOptions: {style: google.maps.NavigationControlStyle.SMALL}
+        navigationControlOptions: {
+            style: google.maps.NavigationControlStyle.SMALL
+        }
     };
 
-    var map = new google.maps.Map(document.getElementById("map"), myOptions);
-    var marker = new google.maps.Marker({position: userLocation, map: map, title: "You are here!"});
+    map = new google.maps.Map(document.getElementById("map"), myOptions);
+    marker = new google.maps.Marker({
+        position: location,
+        map: map,
+        title: "You are here!",
+        draggable: true
+    })
+
+    google.maps.event.addListener(marker, 'drag', function() {
+        displayMarkerPosition();
+    });
+
+    google.maps.event.addListener(marker, 'dragend', function() {
+        displayMarkerPosition();
+    });
 }
 
+function setMarkerPosition(latitude, longitude) {
+    if (marker) {
+        marker.setPosition(new google.maps.LatLng(latitude, longitude));
+        map.setCenter(marker.getPosition());
+        displayMarkerPosition();
+    }
+}
+
+function displayMarkerPosition() {
+    var position = marker.getPosition();
+    console.log(position);
+    $('#latitude').val(position.lat());
+    $('#longitude').val(position.lng());
+}
 
 function showError(error) {
     switch (error.code) {

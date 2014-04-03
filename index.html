@@ -18,15 +18,17 @@
 </div>
 
 <form action="">
-    <label><input id="enableGps" type="checkbox" checked="checked" /> Auto-update GPS</label>
-    <label><input id="updateGps" type="button" value="Force update GPS" /></label>
+    <label><input id="updateGps" type="button" value="Get GPS position" /></label>
+    <label><input id="enableGps" type="checkbox" /> Track GPS position</label>
 
     <span id="gpsCoords"></span>
 
     <div id="map"></div>
 
-    <input type="hidden" id="latitude"/>
-    <input type="hidden" id="longitude"/>
+    <input type="text" id="latitude" disabled="disabled" />
+    <input type="text" id="longitude" disabled="disabled" />
+
+    <br />
 
     <input id="submit_button" type="button" disabled value="Submit">
 </form>
