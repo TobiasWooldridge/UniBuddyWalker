@@ -125,25 +125,32 @@ function displayError(message) {
     $("#errorPanel").slideDown();
 }
 
-function getGPS() {
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(showPosition, showError);
-    }
-    else {
-        displayError("Geolocation is not supported by this browser.");
-    }
-}
 
 $(function () {
     loadUniversities();
 
-    //add event listeners
+    // Register event listeners
     $('#university').change(loadBuildings);
     $('#buildings').change(loadRooms);
     $('#rooms').change(selectRoom);
-    $('#getGPS').click(getGPS);
     $('#submit_button').click(sendRoomDetailsSuggestion);
+
+    updateGps();
+    setInterval(updateGps, 2000);
+    $("#enableGps").change(updateGps);
 });
+
+function updateGps() {
+    if ($("#enableGps").is(":checked")) {
+        console.log("Updating GPS coordinates.");
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition, showError);
+        }
+        else {
+            displayError("Geolocation is not supported by this browser.");
+        }
+    }
+}
 
 function showPosition(position) {
     var latitude = position.coords.latitude;

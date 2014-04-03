@@ -1,0 +1,33 @@
+<!doctype>
+<html>
+<head>
+    <title>UniBuddy Walker</title>
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3&sensor=true"></script>
+    <script src="scripts.js"></script>
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+<div id="errorPanel" style="display: none;">
+</div>
+
+<div id="selector">
+    <label for="university">University:</label><select id="university" disabled></select>
+    <label for="buildings">Building:</label><select id="buildings" disabled></select>
+    <label for="rooms">Room:</label><select id="rooms" disabled></select>
+</div>
+
+<form action="">
+    <label><input id="enableGps" type="checkbox"> Enable GPS</label>
+
+    <span id="gpsCoords"></span>
+
+    <div id="map"></div>
+
+    <input type="hidden" id="latitude"/>
+    <input type="hidden" id="longitude"/>
+
+    <input id="submit_button" type="button" disabled value="Submit">
+</form>
+</body>
+</html>
